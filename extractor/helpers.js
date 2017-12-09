@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash')
+  , debug = require('debug')('extractor:helpers')
   , helpers = {};
 
 helpers.getPublisher = (publisherData) => {
@@ -62,6 +63,7 @@ helpers.getBookInfo = (data) => {
   });
 
   bookInfo.id = helpers.getId(data.$);
+  debug('book info', bookInfo);
   return bookInfo;
 };
 

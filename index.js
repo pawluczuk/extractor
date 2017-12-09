@@ -4,9 +4,11 @@ const mongoose = require('mongoose')
   , fs = require('fs')
   , async = require('async')
   , models = require('./models')
+  , debug = require('debug')('extractor:index')
   , extractor = require('./extractor')({models})
   , db = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
-  , MAX_OPEN_FILES = 5000
+  , DIRECTORY = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub'
+  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 1000
   ;
 
 mongoose.Promise = global.Promise;
@@ -14,14 +16,19 @@ mongoose.connect(db, {
   useMongoClient: true
 });
 
-const dir = path.join('../rdfs/epub');
+fs.readdir(DIRECTORY, (err, dirs) => {
 
-fs.readdir(dir, (err, dirs) => {
-  const fileList = dirs
+  if (err) {
+    console.error(err);
+    mongoose.disconnect();
+    process.exit(0);
+  }
+
+  const fileList = (dirs || [])
     .filter(d => !d.startsWith('.'))
-    .map(d => path.join(dir, d, `pg${d}.rdf`));
+    .map(d => path.join(DIRECTORY, d, `pg${d}.rdf`));
 
-  async.everyLimit(fileList, 1000, extractor.processMetadata, (err) => {
+  async.everyLimit(fileList, PROCESS_MAX_OPEN_FILES, extractor.processMetadata, (err) => {
     console.log(err)
     //console.log(results)
     mongoose.disconnect();

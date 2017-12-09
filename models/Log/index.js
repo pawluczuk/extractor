@@ -7,6 +7,8 @@ const mongoose = require('mongoose')
 const log = new Schema({
   file: {type: String}
   , error: {}
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('Log', log);

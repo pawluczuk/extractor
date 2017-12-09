@@ -1,16 +1,14 @@
 const fs = require('fs')
   , async = require('async')
+  , path = require('path')
   , parseString = require('xml2js').parseString
+  , debug = require('debug')('extractor:lib')
   , helpers = require('./helpers')
   ;
 
 let models;
 
 const logError = (error, file, cb) => {
-  if (!cb) {
-    cb = file;
-    file = undefined;
-  }
   const log = new models.logs({error, file});
   log.save(cb);
 }
@@ -21,12 +19,15 @@ const logError = (error, file, cb) => {
  * @param {function} cb callback
  */
 const parseFile = (filePath, cb) => {
+  debug('reading file', filePath);
   fs.readFile(filePath, 'utf-8', (err, file) => {
     if (err) {
+      debug('err reading file', err);
       return cb(err);
     }
     parseString(file, (err, parsedString) => {
       if (err) {
+        debug('err parsing XML', err);
         return cb(err);
       }
       parsedString.filePath = filePath;
@@ -68,6 +69,7 @@ const parseFields = (data, cb) => {
 };
 
 const saveToDatabase = (bookInfo, cb) => {
+  debug('saving book info to db');
   const book = new models.books(bookInfo);
   book.save(cb);
 };
@@ -79,8 +81,9 @@ const processMetadata = (filePath, callback) => {
 
   const finish = (err) => {
     if (err) {
+      debug('file extraction err', err, filePath);
       // log error to db and continue
-      return logError(err, callback);
+      return logError(err, path.resolve(filePath), callback);
     }
     return callback(null);
   };
