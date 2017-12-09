@@ -9,7 +9,7 @@ const mongoose = require('mongoose')
   , extractor = require('./extractor')({models})
   , db = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
   , DIRECTORY = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub'
-  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 200
+  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 2000
   , WORKERS_NUMBER = require('os').cpus().length
   ;
 
@@ -84,7 +84,7 @@ fs.readdir(DIRECTORY, (err, dirs) => {
 
     process.on('message', function(task) {
       if (task.type === 'processfile') {
-        async.everyLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processMetadata, (err) => {
+        async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processMetadata, (err) => {
           debug('processMetadata err', err);
           process.send('finish');
         });
@@ -93,4 +93,5 @@ fs.readdir(DIRECTORY, (err, dirs) => {
       }
     });
   }
+
 });
