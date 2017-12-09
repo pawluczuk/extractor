@@ -9,7 +9,7 @@ const mongoose = require('mongoose')
   , extractor = require('./extractor')({models})
   , db = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
   , DIRECTORY = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub'
-  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 256
+  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 200
   , WORKERS_NUMBER = require('os').cpus().length
   ;
 
@@ -29,12 +29,11 @@ fs.readdir(DIRECTORY, (err, dirs) => {
 
   if (cluster.isMaster) {
     console.time("processing");
-    
+
     let currentlyWorking = 0;
     let fileList = (dirs || [])
       .filter(d => !d.startsWith('.'))
       .map(d => path.join(DIRECTORY, d, `pg${d}.rdf`));
-    //fileList = fileList.slice(0, 1000);
 
     for (let i = 0; i < WORKERS_NUMBER; i++) {
       cluster.fork();
@@ -71,7 +70,7 @@ fs.readdir(DIRECTORY, (err, dirs) => {
           worker.send({
             type: 'processfile',
             from: 'master',
-            file: fileList.pop()
+            files: fileList.splice(0, Math.min(fileList.length, PROCESS_MAX_OPEN_FILES))
           });
         } else {
           worker.send({
@@ -85,7 +84,7 @@ fs.readdir(DIRECTORY, (err, dirs) => {
 
     process.on('message', function(task) {
       if (task.type === 'processfile') {
-        extractor.processMetadata(task.file, (err) => {
+        async.everyLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processMetadata, (err) => {
           debug('processMetadata err', err);
           process.send('finish');
         });
