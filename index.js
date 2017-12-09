@@ -9,7 +9,7 @@ const mongoose = require('mongoose')
   , extractor = require('./extractor')({models})
   , db = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
   , DIRECTORY = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub'
-  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 2000
+  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 1000
   , WORKERS_NUMBER = require('os').cpus().length
   ;
 
@@ -25,7 +25,7 @@ const closeConnection = () => {
 }
 
 const finish = () => {
-  mongoose.logs.count({}).exec((err, count) => {
+  models.logs.count({}).exec((err, count) => {
     if (err) {
       return closeConnection();
     }

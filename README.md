@@ -2,7 +2,11 @@
 Metadata extractor for all the project Gutenberg titles
 
 # Running module
+Start with installing all required modules by running `npm install`.
+
 Main file is `index.js`, and you can run it using command `node index.js [DIRECTORY] [PROCESS_MAX_OPEN_FILES]`, i.e. `node index.js ../rds 200`.
+
+To see debugging info, run `npm run debug`. This will print all debugging info to the console. Not recommended with processing all data.
 
 `DIRECTORY` and `PROCESS_MAX_OPEN_FILES` are optional arguments, if not specified will default to 1000 files and `../rdfs/epub` directory.
 If you want to check maximum open files allowed, type in the terminal `ulimit -n`. `PROCESS_MAX_OPEN_FILES` should never exceed it.
@@ -77,6 +81,17 @@ Mongoose schemas used in the module.
   timestamps: true
 }
 ````
+
+# Eslint
+
+Eslint config file is specified in a directory. 
+To run it, use `eslint --quiet .` to see only errors (there should be no errors).
+To see also any warnings run `eslint .`.
+
+# Testing
+
+To run all the tests use `npm run test` command.
+To run all the tests with coverage report, run `npm run testcov` command. It will create `coverage` directory with detailed coverage info.
 
 # Task specification
 You can specify the directory for Gutenberg project files as first argument
