@@ -7,7 +7,7 @@ const mongoose = require('mongoose')
   , cluster = require('cluster')
   , models = require('./models')
   , debug = require('debug')('extractor:index')
-  , extractor = require('./extractor')({models})
+  , bookProcessor = require('./bookProcessor')({models})
   , dbUrl = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
   , DIRECTORY = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub'
   , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 1000
@@ -50,7 +50,7 @@ function forkProcess() {
 
   process.on('message', function(task) {
     if (task.type === 'processfile') {
-      async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processFile, (err) => {
+      async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, bookProcessor.processFile, (err) => {
         debug('processMetadata err', err);
         process.send('finish');
       });
