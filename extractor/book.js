@@ -20,7 +20,7 @@ class Book {
   }
 
   getId() {
-    const bookIdentifier = this.data['rdf:about'] || '';
+    const bookIdentifier = this.data.$['rdf:about'] || '';
     return parseInt(bookIdentifier.replace('ebooks/', ''));
   }
 
@@ -67,13 +67,13 @@ class Book {
   getBookInfo() {
     const bookInfo = {};
     Object.keys(this.data).forEach((property) => {
-      const dataProcessor = this[`get${_.startCase(property)}`];
-      console.log(property)
-      if (dataProcessor) {
-        bookInfo[property] = dataProcessor();
+      const dataProcessor = `get${_.startCase(property)}`;
+      if (this[dataProcessor]) {
+        bookInfo[property] = this[dataProcessor]();
       }
     });
-    bookInfo.id = this.getId(this.data.$);
+
+    bookInfo.id = this.getId();
     debug('book info', bookInfo);
     return bookInfo;
   }

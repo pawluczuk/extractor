@@ -67,8 +67,10 @@ const extractRequiredFields = (parsedString, cb) => {
  */
 const parseFields = (data, cb) => {
   debug('parseFields', JSON.stringify(data, null, 2));
-  const book = new Book(data);
-  return cb(null, book.bookInfo);
+  const book = new Book(data)
+    , info = book.bookInfo
+    ;
+  return cb(null, info);
 };
 
 const saveToDatabase = (bookInfo, cb) => {

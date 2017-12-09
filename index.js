@@ -8,14 +8,18 @@ const mongoose = require('mongoose')
   , models = require('./models')
   , debug = require('debug')('extractor:index')
   , extractor = require('./extractor')({models})
-  , db = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
+  , dbUrl = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
   , DIRECTORY = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub'
   , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 1000
   , WORKERS_NUMBER = require('os').cpus().length
   ;
 
+/**
+ * Mongoose buffers up commands until it is finished connecting
+ * Can be treated like synchronous function
+ */
 mongoose.Promise = global.Promise;
-mongoose.connect(db, {
+mongoose.connect(dbUrl, {
   useMongoClient: true
 });
 
@@ -57,7 +61,7 @@ const forkProcess = () => {
   });
 }
 
-const sendFilesForWorker = (worker, fileList) => {
+const sendFilesToWorker = (worker, fileList) => {
   if (fileList.length) {
     // send new batch of files to waiting process
     worker.send({
@@ -109,7 +113,7 @@ const masterProcess = (directories) => {
     debug('Master received message', code);
     if (['finish', 'ready'].indexOf(code) > -1) {
       debug('Master sending new file. Left files:', fileList.length);
-      sendFilesForWorker(worker, fileList);
+      sendFilesToWorker(worker, fileList);
     }
   });
 }
