@@ -40,79 +40,96 @@ const getFilePaths = (dirs) => {
     .map(d => path.join(DIRECTORY, d, `pg${d}.rdf`));
 }
 
-fs.readdir(DIRECTORY, (err, dirs) => {
-
-  if (err) {
-    console.error(err);
-    return closeConnection();
-  }
-
-  if (cluster.isMaster) {
-    console.time('processing');
-
-    let currentlyWorking = 0;
-    const fileList = getFilePaths(dirs);
-
-    for (let i = 0; i < WORKERS_NUMBER; i++) {
-      cluster.fork();
+const init = () => {
+  fs.readdir(DIRECTORY, (err, directories) => {
+    if (err) {
+      console.error(err);
+      return closeConnection();
     }
+    startProcessing(directories);
+  });
+}
 
-    cluster.on('online', function(worker) {
-      debug('Worker ' + worker.process.pid + ' is online');
-      currentlyWorking += 1;
-    });
+const forkProcess = () => {
+  process.send('ready');
 
-    cluster.on('exit', function(worker, code, signal) {
-      debug(`Worker ${worker.process.pid} died with code ${code} and signal ${signal}`);
-      if (fileList.length) {
-        debug('Something went wrong. Starting a new worker');
-        cluster.fork();
-      }
-      else {
-        currentlyWorking -= 1;
-        debug('Still working ', currentlyWorking)
-        if (!currentlyWorking) {
-          debug('All workers finished working');
-          console.timeEnd('processing');
-          finish();
-        }
-      }
-    });
+  process.on('message', function(task) {
+    if (task.type === 'processfile') {
+      async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processMetadata, (err) => {
+        debug('processMetadata err', err);
+        process.send('finish');
+      });
+    }
+    else if (task.type === 'done') {
+      process.exit();
+    }
+  });
+}
 
-    cluster.on('message', function(worker, code) {
-      debug('Master received message', code);
-      if (['finish', 'ready'].indexOf(code) > -1) {
-        debug('Master sending new file. Left files:', fileList.length);
-        if (fileList.length) {
-          // send new batch of files to waiting process
-          worker.send({
-            type: 'processfile',
-            files: fileList.splice(0, Math.min(fileList.length, PROCESS_MAX_OPEN_FILES))
-          });
-        }
-        else {
-          // no more files to process, process can be closed
-          worker.send({
-            type: 'done'
-          });
-        }
-      }
+const sendFilesForWorker = (worker, fileList) => {
+  if (fileList.length) {
+    // send new batch of files to waiting process
+    worker.send({
+      type: 'processfile',
+      files: fileList.splice(0, Math.min(fileList.length, PROCESS_MAX_OPEN_FILES))
     });
   }
   else {
-    process.send('ready');
-
-    process.on('message', function(task) {
-      if (task.type === 'processfile') {
-        async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processMetadata, (err) => {
-          debug('processMetadata err', err);
-          process.send('finish');
-        });
-      }
-      else if (task.type === 'done') {
-        process.exit();
-      }
+    // no more files to process, process can be closed
+    worker.send({
+      type: 'done'
     });
   }
+}
 
-});
+const masterProcess = (directories) => {
+  console.time('processing');
+  
+  let currentlyWorking = 0;
+  const fileList = getFilePaths(directories);
+
+  for (let i = 0; i < WORKERS_NUMBER; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('online', function(worker) {
+    debug('Worker ' + worker.process.pid + ' is online');
+    currentlyWorking += 1;
+  });
+
+  cluster.on('exit', function(worker, code, signal) {
+    debug(`Worker ${worker.process.pid} died with code ${code} and signal ${signal}`);
+    if (fileList.length) {
+      debug('Something went wrong. Starting a new worker');
+      cluster.fork();
+    }
+    else {
+      currentlyWorking -= 1;
+      debug('Still working ', currentlyWorking)
+      if (!currentlyWorking) {
+        debug('All workers finished working');
+        console.timeEnd('processing');
+        finish();
+      }
+    }
+  });
+
+  cluster.on('message', function(worker, code) {
+    debug('Master received message', code);
+    if (['finish', 'ready'].indexOf(code) > -1) {
+      debug('Master sending new file. Left files:', fileList.length);
+      sendFilesForWorker(worker, fileList);
+    }
+  });
+}
+
+const startProcessing = (directories) => {
+  if (cluster.isMaster) {
+    masterProcess(directories);
+  }
+  else {
+    forkProcess();
+  }
+};
+
+init();
