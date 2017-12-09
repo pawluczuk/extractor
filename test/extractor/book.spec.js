@@ -2,12 +2,13 @@
 'use strict';
 
 const assert = require('assert')
-  , helpers = require('../../extractor/helpers')
+  , Book = require('../../extractor/book')
   ;
 
-describe('helpers', () => {
-  describe('getPublisher', () => {
+describe('extractor/book', () => {
+  /*describe('getPublisher', () => {
     it('should return publisher', () => {
+      const book = newBook
       assert.strictEqual(helpers.getPublisher(['abc']), 'abc');
     })
 
@@ -92,7 +93,7 @@ describe('helpers', () => {
       assert(isNaN(helpers.getId({'rdf:about': 'abc'})));
       assert(isNaN(helpers.getId()));
     });
-  })
+  });*/
 
   describe('getBookInfo', () => {
     it('should work', () => {
@@ -222,7 +223,10 @@ describe('helpers', () => {
         license: 'http://licenseUrl.com',
         id: 1090
       };
-      assert.deepStrictEqual(helpers.getBookInfo(data), expectedData);
+
+      const book = new Book(data);
+      assert.deepStrictEqual(book.bookInfo, expectedData);
+      assert.deepStrictEqual(book.getBookInfo(data), expectedData);
     })
   })
 });

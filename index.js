@@ -23,13 +23,13 @@ mongoose.connect(dbUrl, {
   useMongoClient: true
 });
 
-const closeConnection = () => {
+function closeConnection() {
   return mongoose.disconnect(() => {
     process.exit();
   });
 }
 
-const finish = () => {
+function finish() {
   models.logs.count({}).exec((err, count) => {
     if (err) {
       return closeConnection();
@@ -39,13 +39,13 @@ const finish = () => {
   });
 }
 
-const getFilePaths = (dirs) => {
+function getFilePaths(dirs) {
   return (dirs || [])
     .filter(d => !d.startsWith('.'))
     .map(d => path.join(DIRECTORY, d, `pg${d}.rdf`));
 }
 
-const forkProcess = () => {
+function forkProcess() {
   process.send('ready');
 
   process.on('message', function(task) {
@@ -61,7 +61,7 @@ const forkProcess = () => {
   });
 }
 
-const sendFilesToWorker = (worker, fileList) => {
+function sendFilesToWorker(worker, fileList) {
   if (fileList.length) {
     // send new batch of files to waiting process
     worker.send({
@@ -77,7 +77,7 @@ const sendFilesToWorker = (worker, fileList) => {
   }
 }
 
-const masterProcess = (directories) => {
+function masterProcess(directories) {
   console.time('processing');
 
   let currentlyWorking = 0;
@@ -118,7 +118,7 @@ const masterProcess = (directories) => {
   });
 }
 
-const startProcessing = (directories) => {
+function startProcessing(directories) {
   if (cluster.isMaster) {
     masterProcess(directories);
   }
@@ -127,7 +127,7 @@ const startProcessing = (directories) => {
   }
 };
 
-const init = () => {
+function init() {
   fs.readdir(DIRECTORY, (err, directories) => {
     if (err) {
       console.error(err);
