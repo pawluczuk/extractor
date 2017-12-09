@@ -22,17 +22,19 @@ fs.readdir(DIRECTORY, (err, dirs) => {
 
   if (err) {
     console.error(err);
-    mongoose.disconnect();
-    process.exit(0);
+    mongoose.disconnect(() => {
+      process.exit(0);
+    });
   }
 
   if (cluster.isMaster) {
+    console.time("processing");
+    
     let currentlyWorking = 0;
     let fileList = (dirs || [])
       .filter(d => !d.startsWith('.'))
       .map(d => path.join(DIRECTORY, d, `pg${d}.rdf`));
-
-    fileList = fileList.slice(0, 1000);
+    //fileList = fileList.slice(0, 1000);
 
     for (let i = 0; i < WORKERS_NUMBER; i++) {
       cluster.fork();
@@ -46,13 +48,14 @@ fs.readdir(DIRECTORY, (err, dirs) => {
     cluster.on('exit', function(worker, code, signal) {
       debug('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal);
       if (fileList.length) {
-        debug('Starting a new worker');
+        debug('Something went wrong. Starting a new worker');
         cluster.fork();
       } else {
         currentlyWorking -= 1;
         debug('Still working ', currentlyWorking)
         if (!currentlyWorking) {
           debug('All workers finished working');
+          console.timeEnd("processing");
           mongoose.disconnect(() => {
             process.exit();
           });
