@@ -25,13 +25,15 @@ Any errors occured during processing will be saved to `logs` collection. It will
 For 4 CPUs, using cluster and arbitrarily set number of files being processed at the same time (`PROCESS_MAX_OPEN_FILES`) by each process, I got results:
 
 | Number of files processed | Processing time (in ms) |
+| ---- | ---------- |
 | 500 | 143213.653 |
-| 1000 | 111266.712ms |
-| 2000 | 135012.931ms |
+| 1000 | 111266.712 |
+| 2000 | 135012.931 |
 
 For comparison, without using cluster module, and using 2000 files at a time, got the following results:
 
 | Number of files processed | Processing time (in ms) |
+| ---- | ---------- |
 | 2000 | 230894.058 |
 
 # Schema
@@ -85,12 +87,15 @@ Mongoose schemas used in the module.
 # Eslint
 
 Eslint config file is specified in a directory. 
+
 To run it, use `eslint --quiet .` to see only errors (there should be no errors).
+
 To see also any warnings run `eslint .`.
 
 # Testing
 
 To run all the tests use `npm run test` command.
+
 To run all the tests with coverage report, run `npm run testcov` command. It will create `coverage` directory with detailed coverage info.
 
 # Task specification
