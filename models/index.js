@@ -1,3 +1,5 @@
+'use strict';
+
 const models = {};
 
 models.books = require('./Book');

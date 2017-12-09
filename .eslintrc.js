@@ -14,7 +14,7 @@ module.exports = {
          */
 
         // warn about console statements
-        'no-console': 'warn',
+        'no-console': 'off',
 
 
         /**

@@ -1,9 +1,11 @@
+'use strict';
+
 const fs = require('fs')
   , async = require('async')
   , path = require('path')
   , parseString = require('xml2js').parseString
   , debug = require('debug')('extractor:lib')
-  , helpers = require('./helpers')
+  , Book = require('./book')
   ;
 
 let models;
@@ -25,13 +27,13 @@ const parseFile = (filePath, cb) => {
       debug('err reading file', err);
       return cb(err);
     }
-    parseString(file, (err, parsedString) => {
+    parseString(file, (err, jsonXML) => {
       if (err) {
         debug('err parsing XML', err);
         return cb(err);
       }
-      parsedString.filePath = filePath;
-      return cb(null, parsedString);
+      jsonXML.filePath = filePath;
+      return cb(null, jsonXML);
     });
   });
 }
@@ -64,8 +66,9 @@ const extractRequiredFields = (parsedString, cb) => {
  * @param {function} cb callback
  */
 const parseFields = (data, cb) => {
-  const bookInfo = helpers.getBookInfo(data);
-  return cb(null, bookInfo);
+  debug('parseFields', JSON.stringify(data, null, 2));
+  const book = new Book(data);
+  return cb(null, book.bookInfo);
 };
 
 const saveToDatabase = (bookInfo, cb) => {
@@ -74,7 +77,7 @@ const saveToDatabase = (bookInfo, cb) => {
   book.save(cb);
 };
 
-const processMetadata = (filePath, callback) => {
+const processFile = (filePath, callback) => {
   const init = (cb) => {
     return cb(null, filePath);
   }
@@ -100,6 +103,6 @@ const processMetadata = (filePath, callback) => {
 module.exports = (opts) => {
   models = opts.models || require('../models');
   return {
-    processMetadata
+    processFile
   };
 };

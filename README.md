@@ -2,9 +2,9 @@
 Metadata extractor for all the project Gutenberg titles
 
 # Running module
-Start with installing all required modules by running `npm install`.
+Start by installing all required modules by running `npm install`.
 
-Main file is `index.js`, and you can run it using command `node index.js [DIRECTORY] [PROCESS_MAX_OPEN_FILES]`, i.e. `node index.js ../rds 200`.
+The main file is `index.js`, and you can run it using command `node index.js [DIRECTORY] [PROCESS_MAX_OPEN_FILES]`, i.e. `node index.js ../rds 200`.
 
 To see debugging info, run `npm run debug`. This will print all debugging info to the console. Not recommended with processing all data.
 
@@ -22,19 +22,11 @@ Any errors occured during processing will be saved to `logs` collection. It will
 
 `Cluster` module was used to speed up the processing. Limits per files open are set by the process, so using all available threads will enable more files to be open and processed at the same time.
 
-For 4 CPUs, using cluster and arbitrarily set number of files being processed at the same time (`PROCESS_MAX_OPEN_FILES`) by each process, I got results:
+For 4 CPUs, using cluster and arbitrarily set number of files being processed at the same time (`PROCESS_MAX_OPEN_FILES`) by each process, I got results.
 
-| Number of files processed | Processing time (in ms) |
-| ---- | ---------- |
-| 500 | 143213.653 |
-| 1000 | 111266.712 |
-| 2000 | 135012.931 |
+On average, for processing 500-2000 files at a time, the whole process took 129831ms.
 
-For comparison, without using cluster module, and using 2000 files at a time, got the following results:
-
-| Number of files processed | Processing time (in ms) |
-| ---- | ---------- |
-| 2000 | 230894.058 |
+For comparison, without using cluster module, process took 210894ms.
 
 # Schema
 Mongoose schemas used in the module.
@@ -118,3 +110,4 @@ Write a function that reads a single file in and outputs the correct output, usi
 Store the output in a database of your choice locally for later querying, given you have experience with Mongo that makes the most sense here but feel free to use something like https://github.com/sequelize/sequelize with MySQL/PostGres as well
 Write some unit tests in mocha for the code
 Process all metadata for the titles for later querying
+

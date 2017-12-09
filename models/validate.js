@@ -1,4 +1,6 @@
 
+'use strict';
+
 const validateId = (id) => {
   id = parseInt(id);
   return !isNaN(id) && id >= 0 && id <= 99999;

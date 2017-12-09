@@ -1,4 +1,5 @@
 'use strict';
+
 const mongoose = require('mongoose')
   , path = require('path')
   , fs = require('fs')
@@ -40,22 +41,12 @@ const getFilePaths = (dirs) => {
     .map(d => path.join(DIRECTORY, d, `pg${d}.rdf`));
 }
 
-const init = () => {
-  fs.readdir(DIRECTORY, (err, directories) => {
-    if (err) {
-      console.error(err);
-      return closeConnection();
-    }
-    startProcessing(directories);
-  });
-}
-
 const forkProcess = () => {
   process.send('ready');
 
   process.on('message', function(task) {
     if (task.type === 'processfile') {
-      async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processMetadata, (err) => {
+      async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, extractor.processFile, (err) => {
         debug('processMetadata err', err);
         process.send('finish');
       });
@@ -84,7 +75,7 @@ const sendFilesForWorker = (worker, fileList) => {
 
 const masterProcess = (directories) => {
   console.time('processing');
-  
+
   let currentlyWorking = 0;
   const fileList = getFilePaths(directories);
 
@@ -131,5 +122,15 @@ const startProcessing = (directories) => {
     forkProcess();
   }
 };
+
+const init = () => {
+  fs.readdir(DIRECTORY, (err, directories) => {
+    if (err) {
+      console.error(err);
+      return closeConnection();
+    }
+    startProcessing(directories);
+  });
+}
 
 init();
