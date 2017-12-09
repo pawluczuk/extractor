@@ -5,7 +5,7 @@ const validateId = (id) => {
 };
 
 const validateUrl = (url) => {
-  const re = /^((http|https):)?\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+  const re = /^((http|https):)?\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
   return re.test(url);
 };
 

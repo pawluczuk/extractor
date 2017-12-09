@@ -44,7 +44,6 @@ helpers.getCreator = (creatorData) => {
 helpers.getLicense = (licenseData) => {
   //TODO
   licenseData = _.first(licenseData);
-  const assert = require('assert');
   return 'http://licenseUrl.com';
 };
 

@@ -10,6 +10,75 @@ If you want to check maximum open files allowed, type in the terminal `ulimit -n
 # Mongo connection
 Script will look for environment variables first to find mongo db connection url: `MONGO_URI`, and then fallback to `MONGOHQ_URL`. Otherwise it will try to connect to `mongodb://localhost/extractor`.
 
+Book metadata will be saved to `books` collection. 
+
+Any errors occured during processing will be saved to `logs` collection. It will save information on the error and related file path.
+
+# Performance statistics
+
+`Cluster` module was used to speed up the processing. Limits per files open are set by the process, so using all available threads will enable more files to be open and processed at the same time.
+
+For 4 CPUs, using cluster and arbitrarily set number of files being processed at the same time (`PROCESS_MAX_OPEN_FILES`) by each process, I got results:
+
+| Number of files processed | Processing time (in ms) |
+| 500 | 143213.653 |
+| 1000 | 111266.712ms |
+| 2000 | 135012.931ms |
+
+For comparison, without using cluster module, and using 2000 files at a time, got the following results:
+
+| Number of files processed | Processing time (in ms) |
+| 2000 | 230894.058 |
+
+# Schema
+Mongoose schemas used in the module.
+## Books schema
+````
+{
+  id: {
+    type: Number
+    , validate: [validate.id, 'Invalid id']
+    , required: true
+    , unique: true
+  }
+  , title: {
+    type: String
+  }
+  , creator: [{
+    type: String
+  }]
+  , publisher: {
+    type: String
+    , default: 'Project Gutenberg'
+  }
+  , language: {
+    type: String
+    , enum: constants.languages
+  }
+  , subject: [{
+    type: String
+  }]
+  , license: {
+    type: String
+    , validate: [validate.url, 'Invalid license url']
+  }
+}, {
+  timestamps: true
+}
+````
+
+## Logs schema
+
+````
+{
+  file: {type: String}
+  , error: {}
+}, {
+  timestamps: true
+}
+````
+
+# Task specification
 You can specify the directory for Gutenberg project files as first argument
 The challenge is to build a metadata extractor for all the project Gutenberg titles which are available here: https://www.gutenberg.org/wiki/Gutenberg:Feeds (https://www.gutenberg.org/cache/epub/feeds/rdf-files.tar.zip) 
 

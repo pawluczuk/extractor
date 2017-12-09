@@ -25,7 +25,7 @@ const book = new Schema({
   }
   , language: {
     type: String
-    //, enum: constants.languages
+    , enum: constants.languages
   }
   , subject: [{
     type: String
