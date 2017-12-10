@@ -60,7 +60,7 @@ class Book {
 
   getLicense() {
     //TODO
-    //licenseData = _.first(this.data.license);
+    // this.license.data
     return 'http://licenseUrl.com';
   }
 

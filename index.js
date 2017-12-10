@@ -23,19 +23,23 @@ mongoose.connect(dbUrl, {
   useMongoClient: true
 });
 
-function closeConnection() {
+function closeConnection(cb) {
   return mongoose.disconnect(() => {
-    process.exit();
+    if (cb) {
+      cb();
+    } else {
+      process.exit();
+    }
   });
 }
 
-function finish() {
+function finish(cb) {
   models.logs.count({}).exec((err, count) => {
     if (err) {
-      return closeConnection();
+      return closeConnection(cb);
     }
     console.log(`Found ${count} errors in logs collection.`);
-    return closeConnection();
+    return closeConnection(cb);
   });
 }
 
@@ -77,7 +81,7 @@ function sendFilesToWorker(worker, fileList) {
   }
 }
 
-function masterProcess(directories) {
+function masterProcess(directories, cb) {
   console.time('processing');
 
   let currentlyWorking = 0;
@@ -104,7 +108,7 @@ function masterProcess(directories) {
       if (!currentlyWorking) {
         debug('All workers finished working');
         console.timeEnd('processing');
-        finish();
+        finish(cb);
       }
     }
   });
@@ -118,23 +122,31 @@ function masterProcess(directories) {
   });
 }
 
-function startProcessing(directories) {
+function startProcessing(directories, cb) {
   if (cluster.isMaster) {
-    masterProcess(directories);
+    masterProcess(directories, cb);
   }
   else {
     forkProcess();
   }
 }
 
-function init() {
+function init(cb) {
   fs.readdir(DIRECTORY, (err, directories) => {
     if (err) {
       console.error(err);
-      return closeConnection();
+      return closeConnection(cb);
     }
-    startProcessing(directories);
+    startProcessing(directories, cb);
   });
 }
 
-init();
+if (process.argv[1].indexOf('extractor/index.js') > -1) {
+  init();
+} else {
+  module.exports = {
+    init
+  };
+}
+
+
