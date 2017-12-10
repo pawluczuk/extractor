@@ -10,26 +10,26 @@ class Book {
   }
 
   getPublisher() {
-    const publisher = this.data.publisher;
+    const publisher = _.get(this, 'data.publisher', []);
     return _.first(publisher);
   }
 
   getTitle() {
-    const title = this.data.title;
+    const title = _.get(this, 'data.title', []);
     return _.first(title);
   }
 
   getId() {
-    const bookIdentifier = this.data.$['rdf:about'] || '';
+    const bookIdentifier = _.get(this, 'data.$["rdf:about"]', '');
     return parseInt(bookIdentifier.replace('ebooks/', ''));
   }
 
   getLanguage() {
-    let languageData = _.first(this.data.language);
+    const language = _.get(this, 'data.language', []);
+    let languageData = _.first(language);
     if (languageData) {
       if (languageData['rdf:Description']) {
-        languageData = _.first(languageData['rdf:Description']);
-        languageData = _.first(languageData['rdf:value']);
+        languageData = _.get(languageData, '["rdf:Description"][0]["rdf:value"][0]', {})
       }
       return languageData._;
     }
@@ -39,9 +39,9 @@ class Book {
   getSubject() {
     const subjects = [];
     (this.data.subject || []).forEach((subjectDescription) => {
-      if (subjectDescription['rdf:Description']) {
-        subjectDescription = _.first(subjectDescription['rdf:Description']);
-        subjects.push(_.first(subjectDescription['rdf:value']));
+      subjectDescription = _.get(subjectDescription, '["rdf:Description"][0]["rdf:value"][0]');
+      if (subjectDescription) {
+        subjects.push(subjectDescription);
       }
     });
     return subjects;
@@ -50,9 +50,9 @@ class Book {
   getCreator() {
     const creators = [];
     (this.data.creator || []).forEach((creatorDescription) => {
-      if (creatorDescription['pgterms:agent']) {
-        const creator = _.first(creatorDescription['pgterms:agent']);
-        creators.push(_.first(creator['pgterms:name']));
+      creatorDescription = _.get(creatorDescription, '["pgterms:agent"][0]["pgterms:name"][0]');
+      if (creatorDescription) {
+        creators.push(creatorDescription);
       }
     });
     return creators;

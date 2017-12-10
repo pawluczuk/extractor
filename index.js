@@ -125,7 +125,7 @@ function startProcessing(directories) {
   else {
     forkProcess();
   }
-};
+}
 
 function init() {
   fs.readdir(DIRECTORY, (err, directories) => {
