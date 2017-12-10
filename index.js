@@ -9,15 +9,13 @@ const mongoose = require('mongoose')
   , debug = require('debug')('extractor:index')
   , bookProcessor = require('./bookProcessor')({models})
   , dbUrl = process.env.MONGO_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/extractor'
-  , DIRECTORY = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub'
-  , PROCESS_MAX_OPEN_FILES = process.argv.length >= 4 ? process.argv[3] : 1000
-  , WORKERS_NUMBER = require('os').cpus().length
+  , workersNumber = require('os').cpus().length
   ;
 
-/** Flag identifying whether script is run from the console or required as a module 
- *  Needed for testing purposes
-*/
-let runByConsole;
+let runByConsole // flag identyfing whether script is required or run from console
+  , gutenbergDirectory // directory for files from gutenberg project
+  , filesPerProcess // how many files can be processed at the same time
+  ;
 
 /**
  * Mongoose buffers up commands until it is finished connecting
@@ -38,7 +36,7 @@ function closeConnection(cb) {
 }
 
 function finish(cb) {
-  models.logs.count({}).exec((err, count) => {
+  models.Logs.count({}).exec((err, count) => {
     if (err) {
       return cb(err);
     }
@@ -50,7 +48,7 @@ function finish(cb) {
 function getFilePaths(dirs) {
   return (dirs || [])
     .filter(d => !d.startsWith('.'))
-    .map(d => path.join(DIRECTORY, d, `pg${d}.rdf`));
+    .map(d => path.join(gutenbergDirectory, d, `pg${d}.rdf`));
 }
 
 function forkProcess() {
@@ -58,7 +56,7 @@ function forkProcess() {
 
   process.on('message', function(task) {
     if (task.type === 'processfile') {
-      async.eachLimit(task.files, PROCESS_MAX_OPEN_FILES, bookProcessor.processFile, (err) => {
+      async.eachLimit(task.files, filesPerProcess, bookProcessor.processFile, (err) => {
         debug('processMetadata err', err);
         process.send('finish');
       });
@@ -74,7 +72,7 @@ function sendFilesToWorker(worker, fileList) {
     // send new batch of files to waiting process
     worker.send({
       type: 'processfile',
-      files: fileList.splice(0, Math.min(fileList.length, PROCESS_MAX_OPEN_FILES))
+      files: fileList.splice(0, Math.min(fileList.length, filesPerProcess))
     });
   }
   else {
@@ -91,7 +89,7 @@ function masterProcess(directories, cb) {
   let currentlyWorking = 0;
   const fileList = getFilePaths(directories);
 
-  for (let i = 0; i < WORKERS_NUMBER; i++) {
+  for (let i = 0; i < workersNumber; i++) {
     cluster.fork();
   }
 
@@ -136,16 +134,19 @@ function startProcessing(directories, cb) {
 }
 
 function constructCallback(cb) {
-  return function (err) {
+  return function(err) {
     closeConnection(() => {
       cb(err);
     });
   };
 }
 
-function init(cb) {
+function init(dir, fileLimit, cb) {
+  gutenbergDirectory = dir;
+  filesPerProcess = fileLimit;
   cb = constructCallback(cb);
-  fs.readdir(DIRECTORY, (err, directories) => {
+
+  fs.readdir(gutenbergDirectory, (err, directories) => {
     if (err) {
       console.error(err);
       return cb(err);
@@ -158,10 +159,12 @@ function init(cb) {
  * If file is run from console, need to initiate the process
  */
 if (require.main === module) {
+
   runByConsole = true;
-  init(() => {
-    closeConnection();
-  });
+  const argsGutenbergDirectory = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub';
+  const argsFilesPerProcess = process.argv.length >= 4 ? process.argv[3] : 1000;
+
+  init(argsGutenbergDirectory, argsFilesPerProcess, () => {});
 }
 
 module.exports = {

@@ -28,13 +28,13 @@ describe('bookProcessor/index', () => {
 
     before(() => {
       models = {
-        logs: function Log(data) {
+        Logs: function Log(data) {
           logsData.push(data);
           this.save = (cb) => {
             cb(logsSaveErr);
           }
         }
-        , books: function Book(data) {
+        , Books: function Book(data) {
           booksData.push(data);
           this.save = (cb) => {
             cb(booksSaveErr);

@@ -4,12 +4,12 @@ Metadata extractor for all the project Gutenberg titles
 # Running module
 Start by installing all required modules by running `npm install`.
 
-The main file is `index.js`, and you can run it using command `node index.js [DIRECTORY] [PROCESS_MAX_OPEN_FILES]`, i.e. `node index.js ../rds 200`.
+The main file is `index.js`, and you can run it using command `node index.js [directory] [process_max_open_files]`, i.e. `node index.js ../rds 200`.
 
 To see debugging info, run `npm run debug`. This will print all debugging info to the console. Not recommended with processing all data.
 
-`DIRECTORY` and `PROCESS_MAX_OPEN_FILES` are optional arguments, if not specified will default to 1000 files and `../rdfs/epub` directory.
-If you want to check maximum open files allowed, type in the terminal `ulimit -n`. `PROCESS_MAX_OPEN_FILES` should never exceed it.
+`directory` and `process_max_open_files` are optional arguments, if not specified will default to 1000 files and `../rdfs/epub` directory.
+If you want to check maximum open files allowed, type in the terminal `ulimit -n`. `process_max_open_files` should never exceed it.
 
 # Mongo connection
 Script will look for environment variables first to find mongo db connection url: `MONGO_URI`, and then fallback to `MONGOHQ_URL`. Otherwise it will try to connect to `mongodb://localhost/extractor`.
@@ -22,7 +22,7 @@ Any errors occured during processing will be saved to `logs` collection. It will
 
 `Cluster` module was used to speed up the processing. Limits per files open are set by the process, so using all available threads will enable more files to be open and processed at the same time.
 
-For 4 CPUs, using cluster and arbitrarily set number of files being processed at the same time (`PROCESS_MAX_OPEN_FILES`) by each process, I got results.
+For 4 CPUs, using cluster and arbitrarily set number of files being processed at the same time (`process_max_open_files`) by each process, I got results.
 
 On average, for processing 500-2000 files at a time, the whole process took 129831ms.
 

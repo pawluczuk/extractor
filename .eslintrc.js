@@ -43,7 +43,7 @@ module.exports = {
         'no-unmodified-loop-condition': 'warn',
 
         // disallow unused expressions
-        'no-unused-expressions': 'error',
+        'no-unused-expressions': 'warn',
 
         // disallow unused variables
         'no-unused-vars': ['warn', {

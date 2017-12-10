@@ -10,8 +10,8 @@ const fs = require('fs')
 
 let models;
 
-const logError = (error, file, cb) => {
-  const log = new models.logs({error, file});
+function logError(error, file, cb) {
+  const log = new models.Logs({error, file});
   log.save(cb);
 }
 
@@ -20,7 +20,7 @@ const logError = (error, file, cb) => {
  * @param {string} filePath file directory to read from
  * @param {function} cb callback
  */
-const parseFile = (filePath, cb) => {
+function parseFile(filePath, cb) {
   debug('reading file', filePath);
   fs.readFile(filePath, 'utf-8', (err, file) => {
     if (err) {
@@ -43,7 +43,7 @@ const parseFile = (filePath, cb) => {
  * @param {JSON} parsedString parsed XML object
  * @param {function} cb callback
  */
-const extractRequiredFields = (parsedString, cb) => {
+function extractRequiredFields(parsedString, cb) {
   const licenseData = parsedString['rdf:RDF']['cc:Work'][0]
     , ebookData = parsedString['rdf:RDF']['pgterms:ebook'][0] || {}
     , dcTermsFields = ['publisher', 'language', 'title', 'subject', 'creator']
@@ -70,33 +70,34 @@ const extractRequiredFields = (parsedString, cb) => {
  * @param {JSON} data parsed XML object
  * @param {function} cb callback
  */
-const parseFields = (data, cb) => {
+function parseFields(data, cb) {
   debug('parseFields', JSON.stringify(data, null, 2));
   const book = new Book(data)
     , info = book.bookInfo
     ;
   return cb(null, info);
-};
+}
 
-const saveToDatabase = (bookInfo, cb) => {
+function saveToDatabase(bookInfo, cb) {
   debug('saving book info to db');
-  const book = new models.books(bookInfo);
+  const book = new models.Books(bookInfo);
   book.save(cb);
-};
+}
 
-const processFile = (filePath, callback) => {
-  const init = (cb) => {
+function processFile(filePath, callback) {
+
+  function init(cb) {
     return cb(null, filePath);
   }
 
-  const finish = (err) => {
+  function finish(err) {
     if (err) {
       debug('file extraction err', err, filePath);
       // log error to db and continue
       return logError(err, path.resolve(filePath), callback);
     }
     return callback(null);
-  };
+  }
 
   async.waterfall([
     init
@@ -105,7 +106,7 @@ const processFile = (filePath, callback) => {
     , parseFields
     , saveToDatabase
   ], finish);
-};
+}
 
 module.exports = (opts) => {
   models = opts.models || require('../models');
