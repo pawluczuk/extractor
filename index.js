@@ -27,7 +27,8 @@ function closeConnection(cb) {
   return mongoose.disconnect(() => {
     if (cb) {
       cb();
-    } else {
+    }
+    else {
       process.exit();
     }
   });
@@ -143,7 +144,8 @@ function init(cb) {
 
 if (process.argv[1].indexOf('extractor/index.js') > -1) {
   init();
-} else {
+}
+else {
   module.exports = {
     init
   };

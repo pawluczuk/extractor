@@ -12,8 +12,8 @@ const assert = require('assert')
 describe('extractor', () => {
   let readdir
     , fork
-    , processFile
-    , logsErr = null
+    , processFile;
+  const logsErr = null
     , logsCount = 2;
   before(() => {
     readdir = sinon.stub(fs, 'readdir');
@@ -29,19 +29,19 @@ describe('extractor', () => {
       }
     }
   });
-  
+
   afterEach(() => {
     processFile.reset();
     fork.reset();
     readdir.reset();
   });
- 
+
   after(() => {
     processFile.restore();
     fork.restore();
     readdir.restore();
   })
-  
+
   /*it('should fork as many times as there are cpus', (done) => {
     readdir.yields(null, ['a', 'b']);
     processFile.yields(null);
@@ -56,7 +56,7 @@ describe('extractor', () => {
   it('should fail on directory read fail', (done) => {
     readdir.yields('read err');
     const extractor = require('../');
-    extractor.init(err => {
+    extractor.init((err) => {
       assert(!err);
       assert(fork.notCalled);
       done();
