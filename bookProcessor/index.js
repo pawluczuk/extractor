@@ -3,6 +3,7 @@
 const fs = require('fs')
   , async = require('async')
   , path = require('path')
+  , _ = require('lodash')
   , parseString = require('xml2js').parseString
   , debug = require('debug')('extractor:lib')
   , Book = require('./book')
@@ -44,8 +45,8 @@ function parseFile(filePath, cb) {
  * @param {function} cb callback
  */
 function extractRequiredFields(parsedString, cb) {
-  const licenseData = parsedString['rdf:RDF']['cc:Work'][0]
-    , ebookData = parsedString['rdf:RDF']['pgterms:ebook'][0] || {}
+  const licenseData = _.get(parsedString, '["rdf:RDF"]["cc:Work"][0]', {})
+    , ebookData = _.get(parsedString, '["rdf:RDF"]["pgterms:ebook"][0]', {})
     , dcTermsFields = ['publisher', 'language', 'title', 'subject', 'creator']
     , termFields = ['$']
     , licenseFields = ['license']
