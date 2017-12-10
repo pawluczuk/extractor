@@ -6,7 +6,8 @@
   "scripts": {
     "debug": "DEBUG=extractor* node index.js",
     "test": "mocha --recursive",
-    "testcov": "istanbul cover --report html _mocha -- -R spec --recursive && istanbul check-coverage"
+    "testcov": "istanbul cover --report html _mocha -- -R spec --recursive && istanbul check-coverage",
+    "integration": "node integrationTest/integration.js"
   },
   "dependencies": {
     "async": "2.6.0",

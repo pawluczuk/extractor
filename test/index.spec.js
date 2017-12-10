@@ -41,7 +41,7 @@ describe('extractor', () => {
     fork.restore();
     readdir.restore();
   })
-  
+
   /*it('should fork as many times as there are cpus', (done) => {
     readdir.yields(null, ['a', 'b']);
     processFile.yields(null);

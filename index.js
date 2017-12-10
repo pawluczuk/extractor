@@ -163,7 +163,6 @@ if (require.main === module) {
   runByConsole = true;
   const argsGutenbergDirectory = process.argv.length >= 3 ? process.argv[2] : '../rdfs/epub';
   const argsFilesPerProcess = process.argv.length >= 4 ? process.argv[3] : 1000;
-
   init(argsGutenbergDirectory, argsFilesPerProcess, () => {});
 }
 

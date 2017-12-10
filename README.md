@@ -90,3 +90,10 @@ To run all the tests use `npm run test` command.
 
 To run all the tests with coverage report, run `npm run testcov` command. It will create `coverage` directory with detailed coverage info.
 
+# Integration testing
+
+To run integration tests, use `npm run integration` command.
+
+It will create a sample database with sample provided files, check whether data inserted is correct and destroy the database. 
+
+It will use `mongodb://localhost/extractorTest` database for testing purposes.
