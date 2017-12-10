@@ -57,7 +57,7 @@ describe('extractor', () => {
     readdir.yields('read err');
     const extractor = require('../');
     extractor.init((err) => {
-      assert(!err);
+      assert.strictEqual(err, 'read err');
       assert(fork.notCalled);
       done();
     });

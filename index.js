@@ -14,6 +14,11 @@ const mongoose = require('mongoose')
   , WORKERS_NUMBER = require('os').cpus().length
   ;
 
+/** Flag identifying whether script is run from the console or required as a module 
+ *  Needed for testing purposes
+*/
+let runByConsole;
+
 /**
  * Mongoose buffers up commands until it is finished connecting
  * Can be treated like synchronous function
@@ -25,22 +30,20 @@ mongoose.connect(dbUrl, {
 
 function closeConnection(cb) {
   return mongoose.disconnect(() => {
-    if (cb) {
-      cb();
-    }
-    else {
+    if (runByConsole) {
       process.exit();
     }
+    cb && cb();
   });
 }
 
 function finish(cb) {
   models.logs.count({}).exec((err, count) => {
     if (err) {
-      return closeConnection(cb);
+      return cb(err);
     }
     console.log(`Found ${count} errors in logs collection.`);
-    return closeConnection(cb);
+    return cb();
   });
 }
 
@@ -132,23 +135,36 @@ function startProcessing(directories, cb) {
   }
 }
 
+function constructCallback(cb) {
+  return function (err) {
+    closeConnection(() => {
+      cb(err);
+    });
+  };
+}
+
 function init(cb) {
+  cb = constructCallback(cb);
   fs.readdir(DIRECTORY, (err, directories) => {
     if (err) {
       console.error(err);
-      return closeConnection(cb);
+      return cb(err);
     }
     startProcessing(directories, cb);
   });
 }
 
-if (process.argv[1].indexOf('extractor/index.js') > -1) {
-  init();
-}
-else {
-  module.exports = {
-    init
-  };
+/**
+ * If file is run from console, need to initiate the process
+ */
+if (require.main === module) {
+  runByConsole = true;
+  init(() => {
+    closeConnection();
+  });
 }
 
+module.exports = {
+  init
+};
 
