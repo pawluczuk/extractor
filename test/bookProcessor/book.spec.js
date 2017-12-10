@@ -117,7 +117,7 @@ describe('bookProcessor/book', () => {
       'license': [
         {
           '$': {
-            'rdf:resource': 'license'
+            'rdf:resource': 'http://licenseUrl.com'
           }
         }
       ],
@@ -153,7 +153,7 @@ describe('bookProcessor/book', () => {
 
       const book = new Book(data);
       assert.deepStrictEqual(book.bookInfo, expectedData);
-      assert.deepStrictEqual(book.getBookInfo(data), expectedData);
+      assert.deepStrictEqual(book.getBookInfo(), expectedData);
     });
   })
   describe('getLicense', () => {

@@ -44,18 +44,23 @@ const parseFile = (filePath, cb) => {
  * @param {function} cb callback
  */
 const extractRequiredFields = (parsedString, cb) => {
-  parsedString = parsedString['rdf:RDF']['pgterms:ebook'][0] || {};
-
-  const dcTermsFields = ['publisher', 'language', 'title', 'subject', 'creator', 'license']
+  const licenseData = parsedString['rdf:RDF']['cc:Work'][0]
+    , ebookData = parsedString['rdf:RDF']['pgterms:ebook'][0] || {}
+    , dcTermsFields = ['publisher', 'language', 'title', 'subject', 'creator']
     , termFields = ['$']
+    , licenseFields = ['license']
     , result = {};
 
+  licenseFields.forEach((field) => {
+    result[field] = licenseData[`cc:${field}`]
+  });
+
   dcTermsFields.forEach((field) => {
-    result[field] = parsedString[`dcterms:${field}`];
+    result[field] = ebookData[`dcterms:${field}`];
   });
 
   termFields.forEach((field) => {
-    result[field] = parsedString[field];
+    result[field] = ebookData[field];
   });
   return cb(null, result);
 }

@@ -69,10 +69,10 @@ describe('bookProcessor/index', () => {
         assert.deepStrictEqual(booksData[0], {
           publisher: 'Project Gutenberg',
           language: 'en',
-          title: 'Earthwork Slips and Subsidences upon Public Works\nTheir Causes, Prevention, and Reparation',
+          title: 'Earthwork Slips and Subsidences upon Public Works Their Causes, Prevention, and Reparation',
           subject: [],
           creator: ['Newman, John Henry'],
-          license: 'http://licenseUrl.com',
+          license: 'https://creativecommons.org/publicdomain/zero/1.0/',
           id: 56132
         });
         done();
@@ -89,7 +89,7 @@ describe('bookProcessor/index', () => {
           title: undefined,
           subject: [],
           creator: [],
-          license: 'http://licenseUrl.com',
+          license: 'https://creativecommons.org/publicdomain/zero/1.0/',
           id: 56132
         });
         done();

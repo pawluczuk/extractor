@@ -59,9 +59,9 @@ class Book {
   }
 
   getLicense() {
-    //TODO
-    // this.license.data
-    return 'http://licenseUrl.com';
+    const license = this.data.license;
+    const licenseUrl = _.get(license, '[0].$["rdf:resource"]');
+    return licenseUrl;
   }
 
   getBookInfo() {
